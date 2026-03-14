@@ -13,11 +13,25 @@ class Snake:
         self.head = pos
 
     def draw(self):
-        rl.draw_circle_v(self.pos, self.radius, self.color)
+        rl.draw_circle_v(self.head, self.radius, self.color)
+        for seg in self.body:
+            rl.draw_circle_v(seg, self.radius, self.color)
+
 
     def follow_cursor(self):
         m_pos = rl.get_mouse_position()
-        self.head = m_pos
+        direction = rl.vector2_subtract(m_pos, self.head)
+        direction_norm = rl.vector2_normalize(direction)
+        step = rl.vector2_scale(direction_norm, self.speed * rl.get_frame_time())
+        self.head = rl.vector2_add(self.head, step)
+
+        # self.body[0] = rl.Vector2(self.head.x - self.radius, self.head.y)
+        direction = rl.vector2_subtract(self.head, self.body[0])
+        direction_norm = rl.vector2_normalize(direction)
+        step = rl.vector2_scale(direction_norm, self.speed * rl.get_frame_time())
+        self.body[0] = rl.vector2_add(self.body[0], step)
+
+
 
 
 def main():
