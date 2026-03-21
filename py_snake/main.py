@@ -5,6 +5,7 @@
 
 
 from dataclasses import dataclass
+import random
 import pyray as rl
 
 
@@ -56,18 +57,63 @@ def main():
         color     = rl.Color(217, 133, 32, 255),
         radius    = 35,
         speed     = 500,
-        head      = rl.Vector2(100, 100),
+        head      = rl.Vector2(rl.get_render_width() / 2, rl.get_render_height() / 2),
         body      = [rl.Vector2(0, 0)] * 10,
     )
 
+    camera = rl.Camera2D()
+    camera.offset = snake.head
+    camera.target = rl.Vector2(rl.get_render_width() / 2, rl.get_render_height() / 2)
+    camera.rotation = 0.0
+    camera.zoom = 1.0
+
+
+    spacing = 0
+    buildings = []
+    build_colors = []
+    for _ in range(100):
+        width = random.randint(50, 200)
+        height = random.randint(100, 800)
+        x = -6000.0 + spacing
+        y = rl.get_render_height() - 130.0 - height
+
+        spacing += width
+
+        buildings.append(rl.Rectangle(x, y, width, height))
+        build_colors.append(rl.Color(
+            random.randint(200, 240),
+            random.randint(200, 240),
+            random.randint(200, 250),
+            255
+        ))
+
+    WORLD_WIDTH = 6000
+    WORLD_HEIGHT = 6000
     while not rl.window_should_close():
+
+        m_pos = rl.get_screen_to_world_2d(rl.get_mouse_position(), camera)
+        snake = move_snake_to(snake, m_pos)
+        # camera.target = (rl.get_render_width() / 2, rl.get_render_height() / 2)
+        camera.target = snake.head
+
         rl.begin_drawing()
         rl.draw_fps(10, 10)
         rl.clear_background(BG_COLOR)
-        draw_snake(snake)
-        rl.end_drawing()
 
-        snake = move_snake_to(snake, rl.get_mouse_position())
+        rl.begin_mode_2d(camera)
+
+        texture = rl.load_texture("background2.jpg")
+        for y in range(0, WORLD_HEIGHT, texture.height):
+            for x in range(0, WORLD_WIDTH, texture.width):
+                rect = rl.Rectangle(x, y, texture.width, texture.height)
+                src_rect = rl.Rectangle(0, 0, texture.width, texture.height)
+                rl.draw_texture_pro(texture, src_rect, rect, [0, 0], 0, rl.WHITE)
+
+        draw_snake(snake)
+        rec = rl.Rectangle(0, 0, WORLD_WIDTH, WORLD_HEIGHT)
+        rl.draw_rectangle_lines_ex(rec, 10, rl.RED)
+        rl.end_mode_2d()
+        rl.end_drawing()
 
 
 if __name__ == "__main__":
