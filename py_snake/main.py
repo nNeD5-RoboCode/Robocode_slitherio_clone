@@ -58,7 +58,7 @@ def main():
         radius    = 35,
         speed     = 500,
         head      = rl.Vector2(rl.get_render_width() / 2, rl.get_render_height() / 2),
-        body      = [rl.Vector2(0, 0)] * 10,
+        body      = [rl.Vector2(0, 0)] * 50,
     )
 
     camera = rl.Camera2D()
