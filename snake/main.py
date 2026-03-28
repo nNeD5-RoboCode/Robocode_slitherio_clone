@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from this import s
+from typing import final
 
 import pyray as rl
 
@@ -25,13 +27,16 @@ class Snake:
         step = rl.vector2_scale(direction_norm, self.speed * rl.get_frame_time())
         self.head = rl.vector2_add(self.head, step)
 
-        # self.body[0] = rl.Vector2(self.head.x - self.radius, self.head.y)
-        direction = rl.vector2_subtract(self.head, self.body[0])
-        direction_norm = rl.vector2_normalize(direction)
-        step = rl.vector2_scale(direction_norm, self.speed * rl.get_frame_time())
-        self.body[0] = rl.vector2_add(self.body[0], step)
+        def move_part(follower: rl.Vector2, followed: rl.Vector2) -> rl.Vector2:
+            direction = rl.vector2_subtract(followed, follower)
+            direction_norm = rl.vector2_normalize(direction)
+            radius_vector = rl.vector2_scale(direction_norm, self.radius)
+            final_pos = rl.vector2_subtract(followed, radius_vector)
+            return final_pos
 
-
+        self.body[0] = move_part(self.body[0], self.head)
+        for i in range(1, len(self.body)):
+            self.body[i] = move_part(self.body[i], self.body[i - 1])
 
 
 def main():
@@ -50,7 +55,6 @@ def main():
     rl.init_window(WIN_WIDTH, WIN_HEIGHT, "Raylib")
     rl.set_target_fps(60)
     while not rl.window_should_close():
-        dt = rl.get_frame_time()
         rl.begin_drawing()
         rl.draw_fps(10, 10)
         rl.clear_background([25, 32, 36, 255])
