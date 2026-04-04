@@ -1,4 +1,4 @@
-#!/usr/bin/env -S uv run --script
+t!/usr/bin/env -S uv run --script
 # /// script
 # dependencies = ["raylib", "numpy"]
 # ///

@@ -5,19 +5,38 @@ from random import randint
 import pyray as rl
 
 class Food:
-    def __init__(self):
-        self.food_positions: list[rl.Vector2] = []
+    def __init__(self, x: int, y: int, size: int, color: rl.Color):
+        self.x = x
+        self.y = y
+        self.size = size
+        self.color = color
+
+    def draw(self):
+        rl.draw_circle(self.x, self.y, self.size, self.color)
+
+class FoodSpawner:
+    def __init__(self, food_amount: int):
+        self.food_items: list[Food] = []
+        self.food_amount = food_amount
+
+    def spawn_one(self, world_rec: rl.Rectangle):
+        x = randint(int(world_rec.x), int(world_rec.x + world_rec.width))
+        y = randint(int(world_rec.y), int(world_rec.y + world_rec.height))
+        size = randint(3, 15)
+        color = rl.Color(randint(0, 255), randint(0, 255), randint(0, 255), 255)
+        food = Food(x, y, size, color)
+        self.food_items.append(food)
 
     def spawn(self, world_rec: rl.Rectangle):
-        self.food_positions.append(rl.Vector2(
-            randint(int(world_rec.x), int(world_rec.x + world_rec.width)),
-            randint(int(world_rec.y), int(world_rec.y + world_rec.height))
-        ))
+        current_food_amount = len(self.food_items)
+        amount_to_add = self.food_amount - current_food_amount
+        for _ in range(0, amount_to_add):
+            self.spawn_one(world_rec)
 
     def draw(self):
         # TODO: shader for gloving
-        for pos in self.food_positions:
-            rl.draw_circle_v(pos, randint(3, 10), rl.WHITE)
+        for food in self.food_items:
+            food.draw()
 
 
 class Snake:
@@ -51,6 +70,20 @@ class Snake:
         for i in range(1, len(self.body)):
             self.body[i] = move_part(self.body[i], self.body[i - 1])
 
+    def grow(self):
+        pass
+
+
+def snake_eat_food(snake: Snake, food_spawner: FoodSpawner):
+    food_id_to_remove = []
+    for food_id, food in enumerate(food_spawner.food_items):
+        food_pos = rl.Vector2(food.x, food.y)
+        if rl.check_collision_circles(snake.head, snake.radius, food_pos, food.size):
+            snake.grow()
+            food_id_to_remove.append(food_id)
+
+    for id in food_id_to_remove:
+        food_spawner.food_items.pop(id)
 
 def main():
     rl.set_config_flags(rl.ConfigFlags.FLAG_WINDOW_RESIZABLE)
@@ -66,11 +99,12 @@ def main():
         speed=500,
         color=rl.Color(152, 251, 152, 255)
     )
+    food_spawner = FoodSpawner(300)
     rl.init_window(WIN_WIDTH, WIN_HEIGHT, "Raylib")
 
     BG_TILE = rl.load_texture("snake/background_tile.png")
     camera = rl.Camera2D()
-    camera.offset   = (WIN_WIDTH / 2, WIN_HEIGHT / 2)
+    camera.offset   = rl.Vector2(WIN_WIDTH / 2, WIN_HEIGHT / 2)
     camera.target   = snake.head
     camera.rotation = 0
     camera.zoom     = 1
@@ -86,12 +120,17 @@ def main():
                 rl.draw_texture(BG_TILE, x, y, rl.WHITE)
         snake.draw()
 
+        food_spawner.draw()
+
         rl.draw_rectangle_lines_ex(WORLD_REC, 10, rl.WHITE)
 
         m_pos = rl.get_mouse_position()
         m_pos = rl.get_screen_to_world_2d(m_pos, camera)
         snake.move_to(m_pos)
         camera.target = snake.head
+        snake_eat_food(snake, food_spawner)
+
+        food_spawner.spawn(WORLD_REC)
 
         if not rl.check_collision_point_rec(snake.head, WORLD_REC):
             rl.close_window()
