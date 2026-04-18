@@ -10,6 +10,6 @@ from pstats import SortKey
 #     cProfile.run("main()", "profiler_output.txt")
 
 p = pstats.Stats("profiler_output")
-# p = p.strip_dirs()
+p = p.strip_dirs()
 p = p.sort_stats(SortKey.TIME)
 p.print_stats()

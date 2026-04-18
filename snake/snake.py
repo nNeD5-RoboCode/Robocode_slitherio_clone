@@ -3,7 +3,7 @@
 # dependencies = []
 # ///
 
-
+import cProfile
 from random import randint
 
 import pyray as rl
@@ -85,10 +85,18 @@ class Snake:
         for i in range(1, len(self.body)):
             self.body[i] = move_part(self.body[i], self.body[i - 1])
 
-    def grow(self):
-        # TODO: grow should depends on food size
-        # collided food as parameter?
-        self.body.append(self.body[-1])
+    def grow(self, food: Food):
+        new_cicrles_number = 0
+        if food.size > 3 and food.size <= 7:
+            new_cicrles_number = 1
+        elif food.size > 7 and food.size <= 11:
+            new_cicrles_number = 2
+        elif food.size > 11 and food.size <= 15:
+            new_cicrles_number = 3
+
+        for _ in range(0, new_cicrles_number):
+            self.body.append(self.body[-1])
+            self.radius += 0.1
 
     def is_snake_dead(self, world_rec: rl.Rectangle) -> bool:
         if not rl.check_collision_circle_rec(self.head, self.radius, world_rec):
@@ -97,16 +105,16 @@ class Snake:
 
 
 def snake_eat_food(snake: Snake, food_spawner: FoodSpawner):
-    # TODO: strange bug: try to pop not existing food
     food_id_to_remove = []
     for food_id, food in enumerate(food_spawner.food_items):
         food_pos = rl.Vector2(food.x, food.y)
         if rl.check_collision_circles(snake.head, snake.radius, food_pos, food.size):
-            snake.grow()
+            snake.grow(food)
             food_id_to_remove.append(food_id)
 
     for i in food_id_to_remove:
-        food_spawner.food_items.pop(i)
+        if i < len(food_spawner.food_items):
+            food_spawner.food_items.pop(i)
 
 
 
@@ -130,6 +138,15 @@ def main():
     food_spawner = FoodSpawner(300)
 
     BG_TILE = rl.load_texture("background_tile.jpg")
+    bg_texure = rl.load_render_texture(WORLD_SIZE * 3, WORLD_SIZE * 3)
+
+    bg_src_rec = rl.Rectangle(0, 0, WORLD_SIZE*3, WORLD_SIZE*3)
+    bg_dst_rec = rl.Rectangle(-WORLD_SIZE, -WORLD_SIZE, WORLD_SIZE*3, WORLD_SIZE*3)
+    rl.begin_texture_mode(bg_texure)
+    for y in range(0, WORLD_SIZE * 3, BG_TILE.height):
+        for x in range(0, WORLD_SIZE * 3, BG_TILE.width):
+            rl.draw_texture(BG_TILE, x, y, rl.WHITE)
+    rl.end_texture_mode()
 
     camera = rl.Camera2D()
     camera.offset   = rl.Vector2(WIN_WIDTH / 2, WIN_HEIGHT / 2)
@@ -143,9 +160,8 @@ def main():
         rl.clear_background([25, 32, 36, 255])
         rl.begin_mode_2d(camera)
 
-        for y in range(-WORLD_SIZE, WORLD_SIZE * 2, BG_TILE.height):
-            for x in range(-WORLD_SIZE, WORLD_SIZE * 2, BG_TILE.width):
-                rl.draw_texture(BG_TILE, x, y, rl.WHITE)
+
+        rl.draw_texture_pro(bg_texure.texture, bg_src_rec, bg_dst_rec, (0, 0),  0, rl.WHITE)
 
         food_spawner.draw()
         snake.draw()
