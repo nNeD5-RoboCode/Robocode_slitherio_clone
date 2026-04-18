@@ -1,8 +1,4 @@
-#!/usr/bin/env -S uv run --script
-# /// script
-# dependencies = []
-# ///
-
+#!/usr/bin/env python
 
 from random import randint
 
@@ -111,15 +107,12 @@ def snake_eat_food(snake: Snake, food_spawner: FoodSpawner):
 
 
 def main():
+    rl.set_config_flags(rl.ConfigFlags.FLAG_WINDOW_RESIZABLE)
     WIN_SCALE  = 100
     WIN_WIDTH  = 16 * WIN_SCALE
     WIN_HEIGHT = 9  * WIN_SCALE
     WORLD_SIZE = 2500
     WORLD_REC = rl.Rectangle(0, 0, WORLD_SIZE, WORLD_SIZE)
-
-    rl.set_config_flags(rl.ConfigFlags.FLAG_WINDOW_RESIZABLE)
-    rl.init_window(WIN_WIDTH, WIN_HEIGHT, "Raylib")
-
     snake = Snake(
         pos=rl.Vector2(randint(100, WORLD_SIZE - 100), randint(100, WORLD_SIZE - 100)),
         body_size=15,
@@ -128,9 +121,9 @@ def main():
         color=rl.Color(152, 251, 152, 255)
     )
     food_spawner = FoodSpawner(300)
+    rl.init_window(WIN_WIDTH, WIN_HEIGHT, "Raylib")
 
     BG_TILE = rl.load_texture("background_tile.jpg")
-
     camera = rl.Camera2D()
     camera.offset   = rl.Vector2(WIN_WIDTH / 2, WIN_HEIGHT / 2)
     camera.target   = snake.head
@@ -146,9 +139,9 @@ def main():
         for y in range(-WORLD_SIZE, WORLD_SIZE * 2, BG_TILE.height):
             for x in range(-WORLD_SIZE, WORLD_SIZE * 2, BG_TILE.width):
                 rl.draw_texture(BG_TILE, x, y, rl.WHITE)
+        snake.draw()
 
         food_spawner.draw()
-        snake.draw()
 
         rl.draw_rectangle_lines_ex(WORLD_REC, 10, rl.WHITE)
 
@@ -156,6 +149,7 @@ def main():
         m_pos = rl.get_screen_to_world_2d(m_pos, camera)
         snake.move_to(m_pos)
         camera.target = snake.head
+        camera.offset   = rl.Vector2(rl.get_render_width() / 2, rl.get_render_height() / 2)
         snake_eat_food(snake, food_spawner)
 
         food_spawner.spawn(WORLD_REC)

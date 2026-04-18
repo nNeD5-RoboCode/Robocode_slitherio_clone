@@ -5,6 +5,7 @@
 
 
 from random import randint
+import cProfile
 
 import pyray as rl
 
@@ -111,15 +112,12 @@ def snake_eat_food(snake: Snake, food_spawner: FoodSpawner):
 
 
 def main():
+    rl.set_config_flags(rl.ConfigFlags.FLAG_WINDOW_RESIZABLE)
     WIN_SCALE  = 100
     WIN_WIDTH  = 16 * WIN_SCALE
     WIN_HEIGHT = 9  * WIN_SCALE
     WORLD_SIZE = 2500
     WORLD_REC = rl.Rectangle(0, 0, WORLD_SIZE, WORLD_SIZE)
-
-    rl.set_config_flags(rl.ConfigFlags.FLAG_WINDOW_RESIZABLE)
-    rl.init_window(WIN_WIDTH, WIN_HEIGHT, "Raylib")
-
     snake = Snake(
         pos=rl.Vector2(randint(100, WORLD_SIZE - 100), randint(100, WORLD_SIZE - 100)),
         body_size=15,
@@ -128,30 +126,33 @@ def main():
         color=rl.Color(152, 251, 152, 255)
     )
     food_spawner = FoodSpawner(300)
+    rl.init_window(WIN_WIDTH, WIN_HEIGHT, "Raylib")
 
     BG_TILE = rl.load_texture("background_tile.jpg")
-
     camera = rl.Camera2D()
     camera.offset   = rl.Vector2(WIN_WIDTH / 2, WIN_HEIGHT / 2)
     camera.target   = snake.head
     camera.rotation = 0
     camera.zoom     = 1
 
-    rl.set_target_fps(60)
+    render_texture = rl.load_render_texture(WIN_WIDTH, WIN_HEIGHjt)
+
+    # rl.set_target_fps(60)
     while not rl.window_should_close():
-        rl.begin_drawing()
-        rl.clear_background([25, 32, 36, 255])
         rl.begin_mode_2d(camera)
 
+        # DRAWING
+        rl.begin_texture_mode(render_texture)
         for y in range(-WORLD_SIZE, WORLD_SIZE * 2, BG_TILE.height):
             for x in range(-WORLD_SIZE, WORLD_SIZE * 2, BG_TILE.width):
                 rl.draw_texture(BG_TILE, x, y, rl.WHITE)
 
-        food_spawner.draw()
         snake.draw()
-
+        food_spawner.draw()
         rl.draw_rectangle_lines_ex(WORLD_REC, 10, rl.WHITE)
+        rl.end_texture_mode()
 
+        # INPUT
         m_pos = rl.get_mouse_position()
         m_pos = rl.get_screen_to_world_2d(m_pos, camera)
         snake.move_to(m_pos)
@@ -164,6 +165,11 @@ def main():
             food_spawner.spawn_food_on_snake_body(snake)
 
         rl.end_mode_2d()
+
+
+        rl.begin_drawing()
+        rl.clear_background([25, 32, 36, 255])
+        rl.draw_texture(render_texture, 0, 0)
         rl.draw_fps(10, 10)
         rl.end_drawing()
 
@@ -171,4 +177,5 @@ def main():
 
 
 if __name__ == "__main__":
+    # cProfile.run("main()", "profiler_output")
     main()

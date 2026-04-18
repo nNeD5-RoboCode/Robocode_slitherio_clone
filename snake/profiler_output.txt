@@ -1,0 +1,68 @@
+Sat Apr 18 08:56:53 2026    profiler_output
+
+         17656217 function calls in 45.949 seconds
+
+   Ordered by: internal time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+     2741   21.706    0.008   21.706    0.008 {built-in method raylib._raylib_cffi.EndDrawing}
+  3712920    6.410    0.000   37.335    0.000 /home/ned/.local/lib/python3.14/site-packages/pyray/__init__.py:47(wrapped_func)
+   822000    3.147    0.000    3.147    0.000 {built-in method raylib._raylib_cffi.DrawCircle}
+   822505    2.676    0.000    4.308    0.000 /home/ned/.local/lib/python3.14/site-packages/pyray/__init__.py:117(func)
+  2065435    2.580    0.000    2.580    0.000 /home/ned/.local/lib/python3.14/site-packages/pyray/__init__.py:106(is_cdata)
+     2741    1.340    0.000    9.076    0.003 /home/ned/Work/robocode/lessons/python_junior/lessons/evening/21-32_slizario/snake/snake_test.py:100(snake_eat_food)
+   307432    1.058    0.000    1.058    0.000 {built-in method raylib._raylib_cffi.DrawCircleV}
+   304691    0.667    0.000    5.552    0.000 /home/ned/Work/robocode/lessons/python_junior/lessons/evening/21-32_slizario/snake/snake_test.py:78(move_part)
+   822000    0.639    0.000    4.840    0.000 /home/ned/Work/robocode/lessons/python_junior/lessons/evening/21-32_slizario/snake/snake_test.py:19(draw)
+   822505    0.511    0.000    0.511    0.000 {method 'new' of '_cffi_backend.FFI' objects}
+   822505    0.508    0.000    0.508    0.000 /usr/lib/python3.14/weakref.py:334(__setitem__)
+        1    0.448    0.448   45.948   45.948 /home/ned/Work/robocode/lessons/python_junior/lessons/evening/21-32_slizario/snake/snake_test.py:114(main)
+   822000    0.427    0.000    0.427    0.000 {built-in method raylib._raylib_cffi.CheckCollisionCircles}
+     2741    0.419    0.000    0.419    0.000 {built-in method raylib._raylib_cffi.EndMode2D}
+  1646912    0.415    0.000    0.415    0.000 {method 'append' of 'list' objects}
+   498862    0.402    0.000    0.402    0.000 {built-in method raylib._raylib_cffi.DrawTexture}
+   822505    0.388    0.000    0.388    0.000 /usr/lib/python3.14/weakref.py:311(remove)
+     2741    0.347    0.000    5.186    0.002 /home/ned/Work/robocode/lessons/python_junior/lessons/evening/21-32_slizario/snake/snake_test.py:49(draw)
+  1235211    0.289    0.000    0.289    0.000 {method 'startswith' of 'str' objects}
+   612123    0.251    0.000    0.251    0.000 {built-in method raylib._raylib_cffi.Vector2Subtract}
+     2741    0.246    0.000    5.876    0.002 /home/ned/Work/robocode/lessons/python_junior/lessons/evening/21-32_slizario/snake/snake_test.py:72(move_to)
+   822505    0.198    0.000    0.198    0.000 {method 'typeof' of '_cffi_backend.FFI' objects}
+     2741    0.190    0.000    1.614    0.001 /home/ned/Work/robocode/lessons/python_junior/lessons/evening/21-32_slizario/snake/snake_test.py:67(draw)
+        1    0.171    0.171    0.171    0.171 {built-in method raylib._raylib_cffi.InitWindow}
+   307432    0.136    0.000    0.136    0.000 {built-in method raylib._raylib_cffi.Vector2Scale}
+   307432    0.127    0.000    0.127    0.000 {built-in method raylib._raylib_cffi.Vector2Normalize}
+     2741    0.093    0.000    0.093    0.000 {built-in method raylib._raylib_cffi.ClearBackground}
+     2741    0.034    0.000    0.034    0.000 {built-in method raylib._raylib_cffi.DrawFPS}
+     2741    0.024    0.000    0.024    0.000 {built-in method raylib._raylib_cffi.BeginMode2D}
+     2741    0.012    0.000    0.012    0.000 {built-in method raylib._raylib_cffi.DrawRectangleLinesEx}
+     2742    0.009    0.000    0.009    0.000 {built-in method raylib._raylib_cffi.WindowShouldClose}
+        1    0.009    0.009    0.009    0.009 {built-in method raylib._raylib_cffi.LoadTexture}
+     2741    0.007    0.000    0.007    0.000 {built-in method raylib._raylib_cffi.BeginDrawing}
+      500    0.007    0.000    0.034    0.000 /home/ned/Work/robocode/lessons/python_junior/lessons/evening/21-32_slizario/snake/snake_test.py:28(spawn_one)
+     3002    0.006    0.000    0.018    0.000 /usr/lib/python3.14/random.py:335(randint)
+     2741    0.006    0.000    0.006    0.000 {built-in method raylib._raylib_cffi.GetMousePosition}
+     2741    0.006    0.000    0.042    0.000 /home/ned/Work/robocode/lessons/python_junior/lessons/evening/21-32_slizario/snake/snake_test.py:36(spawn)
+     3002    0.006    0.000    0.010    0.000 /usr/lib/python3.14/random.py:245(_randbelow_with_getrandbits)
+     2741    0.006    0.000    0.006    0.000 {built-in method raylib._raylib_cffi.GetScreenToWorld2D}
+     5482    0.005    0.000    0.005    0.000 {built-in method builtins.len}
+        1    0.004    0.004    0.004    0.004 {built-in method raylib._raylib_cffi.CloseWindow}
+     2741    0.004    0.000    0.020    0.000 /home/ned/Work/robocode/lessons/python_junior/lessons/evening/21-32_slizario/snake/snake_test.py:94(is_snake_dead)
+     2741    0.004    0.000    0.004    0.000 {built-in method raylib._raylib_cffi.CheckCollisionCircleRec}
+     2741    0.003    0.000    0.003    0.000 {built-in method raylib._raylib_cffi.GetFrameTime}
+     5257    0.003    0.000    0.003    0.000 {method 'getrandbits' of '_random.Random' objects}
+     2741    0.002    0.000    0.002    0.000 {built-in method raylib._raylib_cffi.Vector2Add}
+     6004    0.002    0.000    0.002    0.000 {built-in method _operator.index}
+     3002    0.001    0.000    0.001    0.000 {method 'bit_length' of 'int' objects}
+        1    0.000    0.000   45.949   45.949 <string>:1(<module>)
+      200    0.000    0.000    0.000    0.000 /home/ned/Work/robocode/lessons/python_junior/lessons/evening/21-32_slizario/snake/snake_test.py:89(grow)
+      500    0.000    0.000    0.000    0.000 /home/ned/Work/robocode/lessons/python_junior/lessons/evening/21-32_slizario/snake/snake_test.py:13(__init__)
+      200    0.000    0.000    0.000    0.000 {method 'pop' of 'list' objects}
+        1    0.000    0.000   45.949   45.949 {built-in method builtins.exec}
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+        1    0.000    0.000    0.000    0.000 {built-in method raylib._raylib_cffi.SetConfigFlags}
+        1    0.000    0.000    0.000    0.000 {built-in method raylib._raylib_cffi.SetTargetFPS}
+        2    0.000    0.000    0.000    0.000 {method 'encode' of 'str' objects}
+        1    0.000    0.000    0.000    0.000 /home/ned/Work/robocode/lessons/python_junior/lessons/evening/21-32_slizario/snake/snake_test.py:59(__init__)
+        1    0.000    0.000    0.000    0.000 /home/ned/Work/robocode/lessons/python_junior/lessons/evening/21-32_slizario/snake/snake_test.py:23(__init__)
+
+
