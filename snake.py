@@ -118,15 +118,12 @@ def snake_eat_food(snake: Snake, food_spawner: FoodSpawner):
 
 
 
-def main():
+def game(client=None, server=None):
     WIN_SCALE  = 100
     WIN_WIDTH  = 16 * WIN_SCALE
     WIN_HEIGHT = 9  * WIN_SCALE
     WORLD_SIZE = 2500
     WORLD_REC = rl.Rectangle(0, 0, WORLD_SIZE, WORLD_SIZE)
-
-    rl.set_config_flags(rl.ConfigFlags.FLAG_WINDOW_RESIZABLE)
-    rl.init_window(WIN_WIDTH, WIN_HEIGHT, "Raylib")
 
     snake = Snake(
         pos=rl.Vector2(randint(100, WORLD_SIZE - 100), randint(100, WORLD_SIZE - 100)),
@@ -160,7 +157,6 @@ def main():
         rl.clear_background([25, 32, 36, 255])
         rl.begin_mode_2d(camera)
 
-
         rl.draw_texture_pro(bg_texure.texture, bg_src_rec, bg_dst_rec, (0, 0),  0, rl.WHITE)
 
         food_spawner.draw()
@@ -182,9 +178,10 @@ def main():
         rl.end_mode_2d()
         rl.draw_fps(10, 10)
         rl.end_drawing()
-
     rl.close_window()
 
 
 if __name__ == "__main__":
-    main()
+    rl.set_config_flags(rl.ConfigFlags.FLAG_WINDOW_RESIZABLE)
+    rl.init_window(WIN_WIDTH, WIN_HEIGHT, "Raylib")
+    game()

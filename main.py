@@ -94,7 +94,6 @@ def main():
                 if btn_menu.is_clicked():
                     game_state = GameState.MENU
                 if input_ip.is_accepted():
-                    print(input_ip.text)
                     client = Client()
                     client.connect(input_ip.text, 6667)
                     game_state = GameState.WAIT
