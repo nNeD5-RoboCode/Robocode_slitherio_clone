@@ -103,6 +103,14 @@ class Snake:
             return True
         return False
 
+    def reset(self, world_rec: rl.Rectangle):
+        self.head.x = randint(100, int(world_rec.width)  - 100)
+        self.head.y = randint(100, int(world_rec.height) - 100)
+        self.radius = 35
+        self.body   = [rl.vector2_zero()] * 15
+
+
+
 
 def snake_eat_food(snake: Snake, food_spawner: FoodSpawner):
     food_id_to_remove = []
@@ -174,6 +182,7 @@ def game(client=None, server=None):
 
         if snake.is_snake_dead(WORLD_REC):
             food_spawner.spawn_food_on_snake_body(snake)
+            snake.reset(WORLD_REC)
 
         rl.end_mode_2d()
         rl.draw_fps(10, 10)
@@ -182,6 +191,11 @@ def game(client=None, server=None):
 
 
 if __name__ == "__main__":
+    WIN_SCALE  = 100
+    WIN_WIDTH  = 16 * WIN_SCALE
+    WIN_HEIGHT = 9  * WIN_SCALE
+    WORLD_SIZE = 2500
+    WORLD_REC = rl.Rectangle(0, 0, WORLD_SIZE, WORLD_SIZE)
     rl.set_config_flags(rl.ConfigFlags.FLAG_WINDOW_RESIZABLE)
     rl.init_window(WIN_WIDTH, WIN_HEIGHT, "Raylib")
     game()
