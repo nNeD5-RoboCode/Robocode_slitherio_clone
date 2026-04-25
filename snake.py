@@ -8,6 +8,7 @@ from random import randint
 
 import pyray as rl
 
+
 class Food:
     def __init__(self, x: int, y: int, size: int, color: rl.Color):
         self.x = x
@@ -23,6 +24,8 @@ class FoodSpawner:
         self.food_items: list[Food] = []
         self.food_amount = food_amount
         self.dead_snake_remains: list[Food] = []
+        self.render_texture = rl.load_render_texture(2500, 2500)
+
 
     def spawn_one(self, world_rec: rl.Rectangle):
         x = randint(int(world_rec.x), int(world_rec.x + world_rec.width))
@@ -47,11 +50,14 @@ class FoodSpawner:
 
     def draw(self):
         # TODO: shader for gloving
+        rl.begin_texture_mode(self.render_texture)
+        rl.clear_background(rl.WHITE)
         for food in self.food_items:
             food.draw()
         for food in self.dead_snake_remains:
             food.draw()
-
+        rl.end_texture_mode()
+        rl.draw_texture(self.render_texture.texture, 0, 0, rl.WHITE)
 
 
 class Snake:
@@ -167,8 +173,8 @@ def game(client=None, server=None):
 
         rl.draw_texture_pro(bg_texure.texture, bg_src_rec, bg_dst_rec, (0, 0),  0, rl.WHITE)
 
-        food_spawner.draw()
         snake.draw()
+        food_spawner.draw()
 
         rl.draw_rectangle_lines_ex(WORLD_REC, 10, rl.WHITE)
 
