@@ -12,6 +12,7 @@ import pyray as rl
 
 from ui      import Button, InputBox
 from network import Server, Client
+from snake   import game
 
 
 class GameState(Enum):
@@ -37,14 +38,16 @@ def main():
     }
 
 
-    btn_host = Button(rl.Rectangle(600, 0, 400, 200),    IMAGES["host"])
-    btn_join = Button(rl.Rectangle(600, 450, 400, 200),  IMAGES["join"])
-    btn_menu = Button(rl.Rectangle(1100, 100, 657, 380), IMAGES["menu"])
-    btn_play = Button(rl.Rectangle(600, 650, 400, 200),  IMAGES["play"])
-    input_ip = InputBox(rl.Rectangle(600, 600, 350, 60))
+    btn_host = Button(rl.Rectangle(  600,   0,   400, 200),    IMAGES["host"])
+    btn_join = Button(rl.Rectangle(  600,   450, 400, 200),  IMAGES["join"])
+    btn_menu = Button(rl.Rectangle(  1100,  100, 657, 380), IMAGES["menu"])
+    btn_play = Button(rl.Rectangle(  600,   650, 400, 200),  IMAGES["play"])
+    input_ip = InputBox(rl.Rectangle(600,   600, 350, 60))
 
     server: Server|None = None
     client: Client|None = None
+
+    client_id = None
 
     while not rl.window_should_close():
         rl.begin_drawing()
@@ -96,7 +99,12 @@ def main():
                 if input_ip.is_accepted():
                     client = Client()
                     client.connect(input_ip.text, 6667)
-                    game_state = GameState.WAIT
+                if client:
+                    msg = client.receive()
+                    if "id:" in msg:
+                        client_id = msg.split(":")[1]
+                        client_id = int(client_id)
+                        game_state = GameState.WAIT
 
             case GameState.WAIT:
                 rl.draw_text("Waiting for host to start game", 400, 500, 65, rl.WHITE)
@@ -107,9 +115,7 @@ def main():
                 assert(not (server == None and client == None))
                 assert(not (server != None and client != None))
                 if client:
-                    if rl.is_key_pressed(rl.KEY_A):
-                        print("Client try to send msg")
-                        client.send("msg")
+                    game(client_id, client)
 
         rl.end_drawing()
 

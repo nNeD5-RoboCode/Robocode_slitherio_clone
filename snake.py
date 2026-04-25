@@ -3,10 +3,20 @@
 # dependencies = []
 # ///
 
-import cProfile
 from random import randint
-
 import pyray as rl
+
+
+WIN_SCALE  = 100
+WIN_WIDTH  = 16 * WIN_SCALE
+WIN_HEIGHT = 9  * WIN_SCALE
+WORLD_SIZE = 2500
+WORLD_REC  = rl.Rectangle(0, 0, WORLD_SIZE, WORLD_SIZE)
+
+camera          = rl.Camera2D()
+camera.offset   = rl.Vector2(WIN_WIDTH / 2, WIN_HEIGHT / 2)
+camera.rotation = 0
+camera.zoom     = 1
 
 
 class Food:
@@ -24,8 +34,6 @@ class FoodSpawner:
         self.food_items: list[Food] = []
         self.food_amount = food_amount
         self.dead_snake_remains: list[Food] = []
-        self.render_texture = rl.load_render_texture(2500, 2500)
-
 
     def spawn_one(self, world_rec: rl.Rectangle):
         x = randint(int(world_rec.x), int(world_rec.x + world_rec.width))
@@ -50,14 +58,11 @@ class FoodSpawner:
 
     def draw(self):
         # TODO: shader for gloving
-        rl.begin_texture_mode(self.render_texture)
-        rl.clear_background(rl.WHITE)
         for food in self.food_items:
             food.draw()
         for food in self.dead_snake_remains:
             food.draw()
-        rl.end_texture_mode()
-        rl.draw_texture(self.render_texture.texture, 0, 0, rl.WHITE)
+
 
 
 class Snake:
@@ -92,6 +97,9 @@ class Snake:
             self.body[i] = move_part(self.body[i], self.body[i - 1])
 
     def grow(self, food: Food):
+        # TODO: add new circle only after some amount of food
+        # TODO: slow down grows accroding to snake size
+        # TODO: change camera zoom on discrete
         new_cicrles_number = 0
         if food.size > 3 and food.size <= 7:
             new_cicrles_number = 1
@@ -102,7 +110,11 @@ class Snake:
 
         for _ in range(0, new_cicrles_number):
             self.body.append(self.body[-1])
-            self.radius += 0.1
+            self.radius += 0.05
+            camera.zoom -= 0.001
+            if camera.zoom < 0.8:
+                camera.zoom = 0.8
+
 
     def is_snake_dead(self, world_rec: rl.Rectangle) -> bool:
         if not rl.check_collision_circle_rec(self.head, self.radius, world_rec):
@@ -132,13 +144,7 @@ def snake_eat_food(snake: Snake, food_spawner: FoodSpawner):
 
 
 
-def game(client=None, server=None):
-    WIN_SCALE  = 100
-    WIN_WIDTH  = 16 * WIN_SCALE
-    WIN_HEIGHT = 9  * WIN_SCALE
-    WORLD_SIZE = 2500
-    WORLD_REC = rl.Rectangle(0, 0, WORLD_SIZE, WORLD_SIZE)
-
+def game(client_id: int=0, client=None):
     snake = Snake(
         pos=rl.Vector2(randint(100, WORLD_SIZE - 100), randint(100, WORLD_SIZE - 100)),
         body_size=15,
@@ -146,7 +152,8 @@ def game(client=None, server=None):
         speed=500,
         color=rl.Color(152, 251, 152, 255)
     )
-    food_spawner = FoodSpawner(300)
+    food_spawner = FoodSpawner(100)
+    snakes = {}
 
     BG_TILE = rl.load_texture("background_tile.jpg")
     bg_texure = rl.load_render_texture(WORLD_SIZE * 3, WORLD_SIZE * 3)
@@ -159,12 +166,6 @@ def game(client=None, server=None):
             rl.draw_texture(BG_TILE, x, y, rl.WHITE)
     rl.end_texture_mode()
 
-    camera = rl.Camera2D()
-    camera.offset   = rl.Vector2(WIN_WIDTH / 2, WIN_HEIGHT / 2)
-    camera.target   = snake.head
-    camera.rotation = 0
-    camera.zoom     = 1
-
     rl.set_target_fps(60)
     while not rl.window_should_close():
         rl.begin_drawing()
@@ -173,8 +174,8 @@ def game(client=None, server=None):
 
         rl.draw_texture_pro(bg_texure.texture, bg_src_rec, bg_dst_rec, (0, 0),  0, rl.WHITE)
 
-        snake.draw()
         food_spawner.draw()
+        snake.draw()
 
         rl.draw_rectangle_lines_ex(WORLD_REC, 10, rl.WHITE)
 
@@ -193,15 +194,36 @@ def game(client=None, server=None):
         rl.end_mode_2d()
         rl.draw_fps(10, 10)
         rl.end_drawing()
+
+        if client:
+            # "{id}:?radius?:{x} {y}, {x} {y}, {x} {y}, ..."
+            msg = f"{client_id}:{snake.radius}:{snake.head.x} {snake.head.y},"
+            for part in snake.body:
+                msg += f"{part.x:.2f} {part.y:.2f},"
+            client.send(msg + '\n')
+
+            msg = client.receive()
+            id, radius, body = msg.split(":")
+            body = body.split(",")
+            head = body[0]
+            head = head.split()
+            head = rl.Vector2(float(head[0]), float(head[1]))
+            body = body[1:]
+            for i in range(len(body)):
+                body[i] = body[i].split()
+                body[i] = rl.Vector2(float(body[i][0]), float(body[i][1]))
+            id = int(id)
+            radius = int(radius)
+            if id in snakes:
+                snakes[id].radius = radius
+                snakes[id].head   = head
+                snakes[id].body   = body
+            print(f"Game received {msg=}")
+
     rl.close_window()
 
 
 if __name__ == "__main__":
-    WIN_SCALE  = 100
-    WIN_WIDTH  = 16 * WIN_SCALE
-    WIN_HEIGHT = 9  * WIN_SCALE
-    WORLD_SIZE = 2500
-    WORLD_REC = rl.Rectangle(0, 0, WORLD_SIZE, WORLD_SIZE)
     rl.set_config_flags(rl.ConfigFlags.FLAG_WINDOW_RESIZABLE)
     rl.init_window(WIN_WIDTH, WIN_HEIGHT, "Raylib")
     game()

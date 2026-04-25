@@ -31,14 +31,13 @@ class Server:
         self.accept_thread.join()
         self.receive_thread.join()
 
-
-
     def accept_loop(self):
         while self.accept_loop_run:
             with suppress(BlockingIOError):
-                socket, _ = self.socket.accept()
-                socket.setblocking(False)
-                self.clients.append(socket)
+                sock, _ = self.socket.accept()
+                sock.setblocking(False)
+                self.clients.append(sock)
+                sock.send(f"id:{len(self.clients)}".encode())
                 print("Someone Connected")
 
     def send_all(self, msg: str):
