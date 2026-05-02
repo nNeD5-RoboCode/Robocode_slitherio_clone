@@ -49,11 +49,12 @@ class Server:
         while self.receive_loop_run:
             # "{id}:?radius?:{x} {y}, {x} {y}, {x} {y}, ..."
             with suppress(BlockingIOError):
+                print(f"Client number: {len(self.clients)}")
                 for client in self.clients:
                     data = client.recv(1024) # TODO: max valued based on lenght limit
                     # TODO: disconnet clinent
                     msg = data.decode()
-                    print(msg)
+                    print(f"Server: {msg=}")
                     self.send_all(msg)
 
 

@@ -200,25 +200,26 @@ def game(client_id: int=0, client=None):
             msg = f"{client_id}:{snake.radius}:{snake.head.x} {snake.head.y},"
             for part in snake.body:
                 msg += f"{part.x:.2f} {part.y:.2f},"
-            client.send(msg + '\n')
+            client.send(msg)
 
             msg = client.receive()
-            id, radius, body = msg.split(":")
-            body = body.split(",")
-            head = body[0]
-            head = head.split()
-            head = rl.Vector2(float(head[0]), float(head[1]))
-            body = body[1:]
-            for i in range(len(body)):
-                body[i] = body[i].split()
-                body[i] = rl.Vector2(float(body[i][0]), float(body[i][1]))
-            id = int(id)
-            radius = int(radius)
-            if id in snakes:
-                snakes[id].radius = radius
-                snakes[id].head   = head
-                snakes[id].body   = body
-            print(f"Game received {msg=}")
+            if msg:
+                id, radius, body = msg.split(":")
+                body = body.split(",")
+                head = body[0]
+                head = head.split()
+                head = rl.Vector2(float(head[0]), float(head[1]))
+                body = body[1:]
+                for i in range(len(body)):
+                    body[i] = body[i].split()
+                    body[i] = rl.Vector2(float(body[i][0]), float(body[i][1]))
+                id = int(id)
+                radius = int(radius)
+                if id in snakes:
+                    snakes[id].radius = radius
+                    snakes[id].head   = head
+                    snakes[id].body   = body
+                print(f"{msg=}")
 
     rl.close_window()
 

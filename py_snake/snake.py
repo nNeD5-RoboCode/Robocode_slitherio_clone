@@ -1,99 +1,133 @@
 #!/usr/bin/env python
 
 from random import randint
+from dataclasses import dataclass
 
 import pyray as rl
 
+
+TEXTURES = {}
+
+@dataclass
 class Food:
-    def __init__(self, x: int, y: int, size: int, color: rl.Color):
-        self.x = x
-        self.y = y
-        self.size = size
-        self.color = color
+    pos:   rl.Vector2
+    size:  int
+    color: rl.Color
 
-    def draw(self):
-        rl.draw_circle(self.x, self.y, self.size, self.color)
 
+@dataclass
 class FoodSpawner:
-    def __init__(self, food_amount: int):
-        self.food_items: list[Food] = []
-        self.food_amount = food_amount
-        self.dead_snake_remains: list[Food] = []
+    max_food_amount: int
+    food_items: list[Food] = []
+    dead_snake_remains: list[Food] = []
 
-    def spawn_one(self, world_rec: rl.Rectangle):
+
+@dataclass
+class Snake:
+    radius: int
+    speed:  float
+    color:  rl.Color
+
+    body:   list[rl.Vector2]
+    head:   rl.Vector2
+
+@dataclass
+class GameState:
+    snake:        Snake
+    food_spawner: FoodSpawner
+    world_rec:    rl.Rectangle
+    camera:       rl.Camera2D
+
+
+def snake_draw(snake: Snake):
+    rl.draw_circle_v(snake.head, snake.radius, snake.color)
+    for part in snake.body:
+        rl.draw_circle_v(part, snake.radius, snake.color)
+
+def snake_move(game_state: GameState):
+    snake = game_state.snake
+
+    m_pos = rl.get_mouse_position()
+    m_pos = rl.get_screen_to_world_2d(m_pos, game_state.camera)
+
+    direction      = rl.vector2_subtract(m_pos, snake.head)
+    direction_norm = rl.vector2_normalize(direction)
+    step           = rl.vector2_scale(direction_norm, snake.speed * rl.get_frame_time())
+    snake.head      = rl.vector2_add(snake.head, step)
+
+    def move_part(part: rl.Vector2, target: rl.Vector2) -> rl.Vector2:
+        direction      = rl.vector2_subtract(target, part)
+        direction_norm = rl.vector2_normalize(direction)
+        radius_vector  = rl.vector2_scale(direction_norm, snake.radius/4)
+        circle_edge    = rl.vector2_subtract(target, radius_vector)
+        return circle_edge
+
+    snake.body[0] = move_part(snake.body[0], snake.head)
+    for i in range(1, len(snake.body)):
+        snake.body[i] = move_part(snake.body[i], snake.body[i - 1])
+
+
+
+def food_spawn(game_state: GameState):
+    world_rec    = game_state.world_rec
+    food_spawner = game_state.food_spawner
+
+    n = food_spawner.max_food_amount - len(food_spawner.food_items)
+    for _ in range(0, n):
         x = randint(int(world_rec.x), int(world_rec.x + world_rec.width))
         y = randint(int(world_rec.y), int(world_rec.y + world_rec.height))
+        pos = rl.Vector2(x, y)
         size = randint(3, 15)
         color = rl.Color(randint(0, 255), randint(0, 255), randint(0, 255), 255)
-        food = Food(x, y, size, color)
-        self.food_items.append(food)
-
-    def spawn(self, world_rec: rl.Rectangle):
-        current_food_amount = len(self.food_items)
-        amount_to_add = self.food_amount - current_food_amount
-        for _ in range(0, amount_to_add):
-            self.spawn_one(world_rec)
-
-    def spawn_food_on_snake_body(self, snake):
-        for snake_part in snake.body:
-            food = Food(int(snake_part.x), int(snake_part.y), 1, snake.color)
-            self.dead_snake_remains.append(food)
+        food = Food(pos, size, color)
+        food_spawner.food_items.append(food)
 
 
-
-    def draw(self):
-        # TODO: shader for gloving
-        for food in self.food_items:
-            food.draw()
-        for food in self.dead_snake_remains:
-            food.draw()
+def spawn_food_on_snake_body(game_state: GameState):
+    for snake_part in game_state.snake.body:
+        pos = rl.Vector2(snake_part.x, snake_part.y)
+        food = Food(pos, randint(3, snake.radius), snake.color)
+        game_state.food_spawner.dead_snake_remains.append(food)
 
 
-
-class Snake:
-    def __init__(self, pos: rl.Vector2, body_size: int, radius: int, speed: int, color: rl.Color):
-        self.radius = radius
-        self.speed = speed
-        self.color = color
-
-        self.body = [pos] * body_size
-        self.head = pos
-
-    def draw(self):
-        rl.draw_circle_v(self.head, self.radius, self.color)
-        for part in self.body:
-            rl.draw_circle_v(part, self.radius, self.color)
-
-    def move_to(self, target_pos: rl.Vector2):
-        direction      = rl.vector2_subtract(target_pos, self.head)
-        direction_norm = rl.vector2_normalize(direction)
-        step           = rl.vector2_scale(direction_norm, self.speed * rl.get_frame_time())
-        self.head      = rl.vector2_add(self.head, step)
-
-        def move_part(part: rl.Vector2, target: rl.Vector2) -> rl.Vector2:
-            direction      = rl.vector2_subtract(target, part)
-            direction_norm = rl.vector2_normalize(direction)
-            radius_vector  = rl.vector2_scale(direction_norm, self.radius/4)
-            circle_edge    = rl.vector2_subtract(target, radius_vector)
-            return circle_edge
-
-        self.body[0] = move_part(self.body[0], self.head)
-        for i in range(1, len(self.body)):
-            self.body[i] = move_part(self.body[i], self.body[i - 1])
-
-    def grow(self):
-        # TODO: grow should depends on food size
-        # collided food as parameter?
-        self.body.append(self.body[-1])
-
-    def is_snake_dead(self, world_rec: rl.Rectangle) -> bool:
-        if not rl.check_collision_circle_rec(self.head, self.radius, world_rec):
-            return True
-        return False
+def draw(game_state: GameState):
+    # TODO: shader for gloving
+    for food in game_state.food_spawner.food_items:
+        rl.draw_circle_v(food.pos, food.size, food.color)
+    for food in game_state.food_spawner.dead_snake_remains:
+        rl.draw_circle_v(food.pos, food.size, food.color)
 
 
-def snake_eat_food(snake: Snake, food_spawner: FoodSpawner):
-    # TODO: strange bug: try to pop not existing food
+def grow(game_state: GameState):
+    # TODO: add new circle only after some amount of food
+    # TODO: slow down grows accroding to snake size
+    # TODO: change camera zoom on discrete
+    new_cicrles_number = 0
+    if food.size > 3 and food.size <= 7:
+        new_cicrles_number = 1
+    elif food.size > 7 and food.size <= 11:
+        new_cicrles_number = 2
+    elif food.size > 11 and food.size <= 15:
+        new_cicrles_number = 3
+
+    snake = game_state.snake
+    for _ in range(0, new_cicrles_number):
+        snake.body.append(snake.body[-1])
+        snake.radius += 0.05
+        game_state.camera.zoom -= 0.001
+        if camera.zoom < 0.8:
+            camera.zoom = 0.8
+
+def is_snake_dead(game_state: GameState) -> bool:
+    if not rl.check_collision_circle_rec(game_state.snake.head, game_state.snake.radius, game_state.world_rec):
+        return True
+    return False
+
+
+def snake_eat_food(game_state: GameState):
+    food_spawner = game_state.food_spawner
+    snake        = game_state.snake
+
     food_id_to_remove = []
     for food_id, food in enumerate(food_spawner.food_items):
         food_pos = rl.Vector2(food.x, food.y)
@@ -101,68 +135,79 @@ def snake_eat_food(snake: Snake, food_spawner: FoodSpawner):
             snake.grow()
             food_id_to_remove.append(food_id)
 
-    for i in food_id_to_remove:
-        food_spawner.food_items.pop(i)
+    for i in food_spawner.food_id_to_remove:
+        if i < (len(i)):
+            food_spawner.food_items.pop(i)
 
 
 
-def main():
+def game_update(game_state: GameState):
+    rl.begin_mode_2d(camera)
+
+    game_state.snake.move_to(m_pos)
+    game_state.camera.target = snake.head
+    game_state.camera.offset = rl.Vector2(rl.get_render_width() / 2, rl.get_render_height() / 2)
+
+    snake_eat_food(game_state)
+
+    food_spaw(game_state)
+
+    if snake.is_snake_dead():
+        spawn_food_on_snake_body(game_state)
+
+    rl.end_mode_2d()
+
+
+def game_draw(game_state: GameState):
+    rl.begin_drawing()
+    rl.begin_mode_2d(camera)
+    rl.clear_background([25, 32, 36, 255])
+
+
+    for y in range(-WORLD_SIZE, WORLD_SIZE * 2, BG_TILE.height):
+        for x in range(-WORLD_SIZE, WORLD_SIZE * 2, BG_TILE.width):
+            rl.draw_texture(BG_TILE, x, y, rl.WHITE)
+
+    snake.draw()
+
+    food_spawner.draw()
+
+    rl.draw_rectangle_lines_ex(game_state.world_rec, 10, rl.WHITE)
+
+    rl.draw_fps(10, 10)
+
+    rl.end_drawing()
+    rl.end_mode_2d()
+
+
+if __name__ == "__main__":
     rl.set_config_flags(rl.ConfigFlags.FLAG_WINDOW_RESIZABLE)
-    WIN_SCALE  = 100
-    WIN_WIDTH  = 16 * WIN_SCALE
-    WIN_HEIGHT = 9  * WIN_SCALE
-    WORLD_SIZE = 2500
-    WORLD_REC = rl.Rectangle(0, 0, WORLD_SIZE, WORLD_SIZE)
-    snake = Snake(
-        pos=rl.Vector2(randint(100, WORLD_SIZE - 100), randint(100, WORLD_SIZE - 100)),
-        body_size=15,
-        radius=35,
-        speed=500,
-        color=rl.Color(152, 251, 152, 255)
-    )
-    food_spawner = FoodSpawner(300)
     rl.init_window(WIN_WIDTH, WIN_HEIGHT, "Raylib")
+    rl.set_target_fps(60)
 
-    BG_TILE = rl.load_texture("background_tile.jpg")
+    snake = Snake(
+        radius = 5
+        speed  = 300
+        color  = rl.Color(169, 50, 50 255)
+
+        body   = [rl.vector_zero()] * 5
+        head   =  rl.vector_zero()
+    )
     camera = rl.Camera2D()
     camera.offset   = rl.Vector2(WIN_WIDTH / 2, WIN_HEIGHT / 2)
     camera.target   = snake.head
     camera.rotation = 0
     camera.zoom     = 1
+    game_state = GameState(
+        snake        = snake
+        food_spawner = FoodSpawner(300)
+        world_rec    = rl.Rectangle(0, 0, 2500, 2500)
+        camera       = camera
+    )
+    TEXTURES["bg_tile"] = rl.load_texture("background_tile.jpg")
 
-    rl.set_target_fps(60)
     while not rl.window_should_close():
-        rl.begin_drawing()
-        rl.clear_background([25, 32, 36, 255])
-        rl.begin_mode_2d(camera)
+        game_update()
 
-        for y in range(-WORLD_SIZE, WORLD_SIZE * 2, BG_TILE.height):
-            for x in range(-WORLD_SIZE, WORLD_SIZE * 2, BG_TILE.width):
-                rl.draw_texture(BG_TILE, x, y, rl.WHITE)
-        snake.draw()
-
-        food_spawner.draw()
-
-        rl.draw_rectangle_lines_ex(WORLD_REC, 10, rl.WHITE)
-
-        m_pos = rl.get_mouse_position()
-        m_pos = rl.get_screen_to_world_2d(m_pos, camera)
-        snake.move_to(m_pos)
-        camera.target = snake.head
-        camera.offset   = rl.Vector2(rl.get_render_width() / 2, rl.get_render_height() / 2)
-        snake_eat_food(snake, food_spawner)
-
-        food_spawner.spawn(WORLD_REC)
-
-        if snake.is_snake_dead(WORLD_REC):
-            food_spawner.spawn_food_on_snake_body(snake)
-
-        rl.end_mode_2d()
-        rl.draw_fps(10, 10)
-        rl.end_drawing()
 
     rl.close_window()
-
-
-if __name__ == "__main__":
-    main()
