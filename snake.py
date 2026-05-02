@@ -7,6 +7,9 @@ from random import randint
 import pyray as rl
 
 
+MAX_SNAKE_SIZE = 500
+MAX_MSG_SIZE   = 4 + 5 + MAX_SNAKE_SIZE * 15
+
 WIN_SCALE  = 100
 WIN_WIDTH  = 16 * WIN_SCALE
 WIN_HEIGHT = 9  * WIN_SCALE
@@ -99,7 +102,7 @@ class Snake:
     def grow(self, food: Food):
         # TODO: add new circle only after some amount of food
         # TODO: slow down grows accroding to snake size
-        # TODO: change camera zoom on discrete
+        # TODO: change camera zoom on discrete size change
         new_cicrles_number = 0
         if food.size > 3 and food.size <= 7:
             new_cicrles_number = 1
@@ -108,12 +111,13 @@ class Snake:
         elif food.size > 11 and food.size <= 15:
             new_cicrles_number = 3
 
-        for _ in range(0, new_cicrles_number):
-            self.body.append(self.body[-1])
-            self.radius += 0.05
-            camera.zoom -= 0.001
-            if camera.zoom < 0.8:
-                camera.zoom = 0.8
+        if len(self.body) + new_cicrles_number < MAX_SNAKE_SIZE:
+            for _ in range(0, new_cicrles_number):
+                self.body.append(self.body[-1])
+                self.radius += 0.07
+                camera.zoom -= 0.001
+                if camera.zoom < 0.8:
+                    camera.zoom = 0.8
 
 
     def is_snake_dead(self, world_rec: rl.Rectangle) -> bool:
@@ -147,7 +151,7 @@ def snake_eat_food(snake: Snake, food_spawner: FoodSpawner):
 def game(client_id: int=0, client=None):
     snake = Snake(
         pos=rl.Vector2(randint(100, WORLD_SIZE - 100), randint(100, WORLD_SIZE - 100)),
-        body_size=15,
+        body_size=35,
         radius=35,
         speed=500,
         color=rl.Color(152, 251, 152, 255)
@@ -197,13 +201,17 @@ def game(client_id: int=0, client=None):
 
         if client:
             # "{id}:?radius?:{x} {y}, {x} {y}, {x} {y}, ..."
-            msg = f"{client_id}:{snake.radius}:{snake.head.x} {snake.head.y},"
-            for part in snake.body:
-                msg += f"{part.x:.2f} {part.y:.2f},"
+            msg = f"{client_id}:{snake.radius}:{snake.head.x:.2f} {snake.head.y:.2f},"
+            for i, part in enumerate(snake.body):
+                if i < len(snake.body) - 1:
+                    msg += f"{part.x:.2f} {part.y:.2f},"
+                else:
+                    msg += f"{part.x:.2f} {part.y:.2f}"
             client.send(msg)
 
             msg = client.receive()
             if msg:
+                print(f"{msg.split(":") = }")
                 id, radius, body = msg.split(":")
                 body = body.split(",")
                 head = body[0]
@@ -214,7 +222,7 @@ def game(client_id: int=0, client=None):
                     body[i] = body[i].split()
                     body[i] = rl.Vector2(float(body[i][0]), float(body[i][1]))
                 id = int(id)
-                radius = int(radius)
+                radius = float(radius)
                 if id in snakes:
                     snakes[id].radius = radius
                     snakes[id].head   = head
