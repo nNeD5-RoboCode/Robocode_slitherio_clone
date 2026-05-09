@@ -147,43 +147,6 @@ def snake_eat_food(snake: Snake, food_spawner: FoodSpawner):
             food_spawner.food_items.pop(i)
 
 
-def snake_to_msg(snake: Snake, client_id: int) -> str:
-    # "{id}:?radius?:{x} {y}, {x} {y}, {x} {y}, ..."
-    msg = f"{client_id}:{snake.radius}:{snake.head.x:.2f} {snake.head.y:.2f},"
-    for i, part in enumerate(snake.body):
-        if i < len(snake.body) - 1:
-            msg += f"{part.x:.2f} {part.y:.2f},"
-        else:
-            msg += f"{part.x:.2f} {part.y:.2f}"
-    for _ in range(MAX_MSG_SIZE - len(msg)):
-        msg += "@"
-    return msg
-
-def update_snakes(snakes: dict, msg: str):
-    print(f"update_snakes: {msg=}")
-    msg = msg.replace("@", "")
-    print(f"update_snakes after replace: {len(msg)=} {msg=}")
-    if len(msg) == 0:
-        return
-
-    print(f"{msg.split(":") = }")
-    id, radius, body = msg.split(":")
-    body = body.split(",")
-    head = body[0]
-    head = head.split()
-    head = rl.Vector2(float(head[0]), float(head[1]))
-    body = body[1:]
-    for i in range(len(body)):
-        body[i] = body[i].split()
-        body[i] = rl.Vector2(float(body[i][0]), float(body[i][1]))
-    id = int(id)
-    radius = float(radius)
-    if id in snakes:
-        snakes[id].radius = radius
-        snakes[id].head   = head
-        snakes[id].body   = body
-    print(f"{msg=}")
-
 
 def game(client_id: int=0, client=None):
     snake = Snake(
@@ -237,12 +200,34 @@ def game(client_id: int=0, client=None):
         rl.end_drawing()
 
         if client:
-            msg = snake_to_msg(snake, client_id)
+            # "{id}:?radius?:{x} {y}, {x} {y}, {x} {y}, ..."
+            msg = f"{client_id}:{snake.radius}:{snake.head.x:.2f} {snake.head.y:.2f},"
+            for i, part in enumerate(snake.body):
+                if i < len(snake.body) - 1:
+                    msg += f"{part.x:.2f} {part.y:.2f},"
+                else:
+                    msg += f"{part.x:.2f} {part.y:.2f}"
             client.send(msg)
 
             msg = client.receive()
             if msg:
-                update_snakes(snakes, msg)
+                print(f"{msg.split(":") = }")
+                id, radius, body = msg.split(":")
+                body = body.split(",")
+                head = body[0]
+                head = head.split()
+                head = rl.Vector2(float(head[0]), float(head[1]))
+                body = body[1:]
+                for i in range(len(body)):
+                    body[i] = body[i].split()
+                    body[i] = rl.Vector2(float(body[i][0]), float(body[i][1]))
+                id = int(id)
+                radius = float(radius)
+                if id in snakes:
+                    snakes[id].radius = radius
+                    snakes[id].head   = head
+                    snakes[id].body   = body
+                print(f"{msg=}")
 
     rl.close_window()
 

@@ -1,6 +1,5 @@
 from contextlib import suppress
 
-from snake import MAX_MSG_SIZE
 import socket
 import threading
 
@@ -78,7 +77,7 @@ class Client:
     def receive(self) -> str:
         # "{id}:?radius?:{x} {y}, {x} {y}, {x} {y}, ..."
         with suppress(BlockingIOError):
-            data = self.host.recv(MAX_MSG_SIZE)
+            data = self.host.recv(1024) # TODO: max valued based on lenght limit
             # TODO: disconnet clinent
             msg = data.decode()
             return msg
