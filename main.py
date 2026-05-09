@@ -84,8 +84,14 @@ def main():
                     server = Server(local_ip, 6667)
                     server.start()
 
+                    # TODO: host should have game as well
+                    client = Client()
+                    client.connect(local_ip, 6667)
+
                 btn_menu.draw()
                 btn_play.draw()
+                if server:
+                    rl.draw_text(f"Players: {len(server.clients)}", 100, 100, 64, rl.WHITE)
                 if btn_menu.is_clicked():
                     game_state = GameState.MENU
                     print("menu")

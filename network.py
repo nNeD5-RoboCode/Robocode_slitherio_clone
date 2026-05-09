@@ -3,6 +3,7 @@ from contextlib import suppress
 from snake import MAX_MSG_SIZE
 import socket
 import threading
+import time
 
 class Server:
     def __init__(self, ip: str, port: int):
@@ -14,6 +15,7 @@ class Server:
         self.receive_loop_run = False
 
     def start(self):
+        # TODO: try UDP instead of TCP
         self.socket: socket.socket = socket.create_server((self.ip, self.port))
         self.socket.setblocking(False)
 
@@ -40,6 +42,7 @@ class Server:
                 self.clients.append(sock)
                 sock.send(f"id:{len(self.clients)}".encode())
                 print("Someone Connected")
+                time.sleep(0.1)
 
     def send_all(self, msg: str):
         for client in self.clients:
@@ -52,7 +55,7 @@ class Server:
             with suppress(BlockingIOError):
                 print(f"Client number: {len(self.clients)}")
                 for client in self.clients:
-                    data = client.recv(1024) # TODO: max valued based on lenght limit
+                    data = client.recv(MAX_MSG_SIZE)
                     # TODO: disconnet clinent
                     msg = data.decode()
                     print(f"Server: {msg=}")
