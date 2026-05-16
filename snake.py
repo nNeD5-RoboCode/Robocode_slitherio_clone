@@ -3,6 +3,7 @@
 # dependencies = []
 # ///
 
+from network import MessageSnake, snake_to_msg, msg_to_snake
 from random import randint
 import pyray as rl
 
@@ -147,18 +148,6 @@ def snake_eat_food(snake: Snake, food_spawner: FoodSpawner):
             food_spawner.food_items.pop(i)
 
 
-def snake_to_msg(snake: Snake, client_id: int) -> str:
-    # "{id}:?radius?:{x} {y}, {x} {y}, {x} {y}, ..."
-    msg = f"{client_id}:{snake.radius}:{snake.head.x:.2f} {snake.head.y:.2f},"
-    for i, part in enumerate(snake.body):
-        if i < len(snake.body) - 1:
-            msg += f"{part.x:.2f} {part.y:.2f},"
-        else:
-            msg += f"{part.x:.2f} {part.y:.2f}"
-    for _ in range(MAX_MSG_SIZE - len(msg)):
-        msg += "@"
-    return msg
-
 def update_snakes(snakes: dict, msg: str):
     print(f"update_snakes: {msg=}")
     msg = msg.replace("@", "")
@@ -237,12 +226,16 @@ def game(client_id: int=0, client=None):
         rl.end_drawing()
 
         if client:
-            msg = snake_to_msg(snake, client_id)
+            msg_snake = MessageSnake
+            msg_snake.radius = snake.radius
+            msg_snake.body_coords = [snake.head] + snake.body
+            msg = snake_to_msg(msg_snake)
             client.send(msg)
 
             msg = client.receive()
-            if msg:
-                update_snakes(snakes, msg)
+            print(f"snake.game: {msg}")
+            # if msg:
+            #     update_snakes(snakes, msg)
 
     rl.close_window()
 
