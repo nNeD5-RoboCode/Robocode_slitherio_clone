@@ -1,11 +1,11 @@
 from contextlib import suppress
 
-MAX_MSG_SIZE = 2**13
 import socket
 import threading
 import time
 import pyray as rl
 
+MAX_MSG_SIZE = 2**13
 
 class MessageSnake:
     def __init__(self):
@@ -23,6 +23,8 @@ def msg_to_snake(msg: str) -> MessageSnake:
         xy = body[i].split()
         coord = rl.Vector2(float(xy[0]), float(xy[1]))
         snake.body_coords.append(coord)
+
+    return snake
 
 def snake_to_msg(snake: MessageSnake) -> str:
     # "{radius}:{x} {y}, {x} {y}, {x} {y}, ..."
@@ -91,7 +93,6 @@ class Server:
         while self.receive_loop_run:
             # "{radius}:{x} {y}, {x} {y}, {x} {y}, ..."
             with suppress(BlockingIOError):
-                print(f"Client number: {len(self.clients)}")
                 clients_to_remove = []
                 for client in self.clients:
                     data = client.recv(MAX_MSG_SIZE)
@@ -153,7 +154,7 @@ class Client:
 
         index = self.buffer.find("\n")
         if index == -1:
-            return None
+            return ""
 
         msg = self.buffer[0:index]
         self.buffer = self.buffer[index + 1:-1]

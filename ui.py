@@ -1,9 +1,20 @@
 import pyray as rl
 
+
+def _rt_mouse_pos(rt_width: int, rt_height: int) -> rl.Vector2:
+    mouse = rl.get_mouse_position()
+    return rl.Vector2(
+        mouse.x * rt_width / rl.get_render_width(),
+        mouse.y * rt_height / rl.get_render_height(),
+    )
+
+
 class Button:
-    def __init__(self, rect: rl.Rectangle, texture: rl.Texture2D):
+    def __init__(self, rect: rl.Rectangle, texture: rl.Texture2D, rt_width: int, rt_height: int):
         self.rect       = rect
         self.texture    = texture
+        self.rt_width   = rt_width
+        self.rt_height  = rt_height
         self.is_hovered = False
         self.is_pressed = False
 
@@ -16,7 +27,8 @@ class Button:
         rl.draw_texture_pro(self.texture, src_rect, self.rect, [0, 0], 0, color)
 
     def _update(self):
-        if rl.check_collision_point_rec(rl.get_mouse_position(), self.rect):
+        mouse = _rt_mouse_pos(self.rt_width, self.rt_height)
+        if rl.check_collision_point_rec(mouse, self.rect):
             self.is_hovered = True
             if rl.is_mouse_button_down(rl.MOUSE_LEFT_BUTTON):
                 self.is_pressed = True
@@ -33,8 +45,10 @@ class Button:
 
 
 class InputBox:
-    def __init__(self, rect: rl.Rectangle):
+    def __init__(self, rect: rl.Rectangle, rt_width: int, rt_height: int):
         self.rect = rect
+        self.rt_width = rt_width
+        self.rt_height = rt_height
         self.text = ""
         self.is_hovered = False
         self.is_focused = False
@@ -59,7 +73,8 @@ class InputBox:
         return self.is_focused and rl.is_key_released(rl.KEY_ENTER)
 
     def _update(self):
-        if rl.check_collision_point_rec(rl.get_mouse_position(), self.rect):
+        mouse = _rt_mouse_pos(self.rt_width, self.rt_height)
+        if rl.check_collision_point_rec(mouse, self.rect):
             self.is_hovered = True
             rl.set_mouse_cursor(rl.MOUSE_CURSOR_IBEAM)
         else:

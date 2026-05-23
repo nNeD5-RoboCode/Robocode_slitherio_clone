@@ -39,11 +39,11 @@ def main():
     }
 
 
-    btn_host = Button(rl.Rectangle(  600,   0,   400, 200),  IMAGES["host"])
-    btn_join = Button(rl.Rectangle(  600,   450, 400, 200),  IMAGES["join"])
-    btn_menu = Button(rl.Rectangle(  2,     10,  329, 190),  IMAGES["menu"])
-    btn_play = Button(rl.Rectangle(  600,   450, 400, 200),  IMAGES["play"])
-    input_ip = InputBox(rl.Rectangle(600,   600, 350, 60))
+    btn_host = Button(rl.Rectangle(  600,   0,   400, 200),  IMAGES["host"], win_width, win_height)
+    btn_join = Button(rl.Rectangle(  600,   450, 400, 200),  IMAGES["join"], win_width, win_height)
+    btn_menu = Button(rl.Rectangle(  2,     10,  329, 190),  IMAGES["menu"], win_width, win_height)
+    btn_play = Button(rl.Rectangle(  600,   450, 400, 200),  IMAGES["play"], win_width, win_height)
+    input_ip = InputBox(rl.Rectangle(600,   600, 350, 60),  win_width, win_height)
 
     server: Server|None = None
     client: Client|None = None
@@ -78,15 +78,14 @@ def main():
                              win_height // 2 - font_size // 2 - 200,
                              font_size,
                              rl.SKYBLUE)
-                # TODO: draw how many clients are connected?
                 if server == None:
                     # TODO: finish and delete server if come back to menu
                     server = Server(local_ip, 6667)
                     server.start()
 
                     # TODO: host should have game as well
-                    client = Client()
-                    client.connect(local_ip, 6667)
+                    # client = Client()
+                    # client.connect(local_ip, 6667)
 
                 btn_menu.draw()
                 btn_play.draw()
@@ -119,7 +118,9 @@ def main():
 
             case GameState.WAIT:
                 rl.draw_text("Waiting for host to start game", 400, 500, 65, rl.WHITE)
-                if client.receive() == "start":
+                msg = client.receive()
+                print(msg)
+                if msg == "start":
                     game_state = GameState.GAME
 
             case GameState.GAME:
