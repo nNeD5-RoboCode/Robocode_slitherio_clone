@@ -119,7 +119,6 @@ def main():
             case GameState.WAIT:
                 rl.draw_text("Waiting for host to start game", 400, 500, 65, rl.WHITE)
                 msg = client.receive()
-                print(msg)
                 if msg == "start":
                     game_state = GameState.GAME
 

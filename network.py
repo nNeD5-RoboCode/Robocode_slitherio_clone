@@ -22,9 +22,9 @@ def msg_to_snake(msg: str) -> MessageSnake:
     for i in range(len(body)):
         xy = body[i].split()
         coord = rl.Vector2(float(xy[0]), float(xy[1]))
-        snake.body_coords.append(coord)
+        msg_snake.body_coords.append(coord)
 
-    return snake
+    return msg_snake
 
 def snake_to_msg(snake: MessageSnake) -> str:
     # "{radius}:{x} {y}, {x} {y}, {x} {y}, ..."
@@ -44,7 +44,7 @@ class Server:
         self.ip = ip
         self.port = port
         self.socket: socket.socket
-        self.clients: [socket.socket] = []
+        self.clients: list[socket.socket] = []
         self.accept_loop_run  = False
         self.receive_loop_run = False
 
@@ -85,9 +85,9 @@ class Server:
 
     def send_all(self, msg: str):
         msg += "\n"
+        data = msg.encode()
         for client in self.clients:
-            data = msg.encode()
-            client.send(data )
+            client.send(data)
 
     def receive_loop(self):
         while self.receive_loop_run:
@@ -103,7 +103,6 @@ class Server:
                         del self.snakes [client]
                         continue
                     msg = data.decode()
-                    print(f"Server: {msg=}")
                     self.buffers[client] += msg
 
             is_anything_new = False
@@ -118,10 +117,14 @@ class Server:
 
             if is_anything_new:
                 msg = ""
-                for snake in self.snakes.values():
+                for client_id, snake in enumerate(self.snakes.values()):
+                    if not snake.body_coords:
+                        continue
+                    msg += f"{client_id}:"
                     msg += snake_to_msg(snake)
                     msg += "@"
 
+                print("Server.send_all: message with snake")
                 self.send_all(msg)
 
 
@@ -139,7 +142,10 @@ class Client:
         if self.host != None:
             data = msg.encode()
             # TODO: check if is connected
-            self.host.send(data)
+            try:
+                self.host.send(data)
+            except BlockingIOError as e:
+                print(f"Can't send: {e}")
         else:
             print(f"ERROR: Failed to send: host is '{self.host}'")
 

@@ -149,29 +149,37 @@ def snake_eat_food(snake: Snake, food_spawner: FoodSpawner):
 
 
 def update_snakes(snakes: dict, msg: str):
-    print(f"update_snakes: {msg=}")
-    msg = msg.replace("@", "")
-    print(f"update_snakes after replace: {len(msg)=} {msg=}")
+    snakes_msgs = msg.split("@")
     if len(msg) == 0:
         return
 
-    print(f"{msg.split(":") = }")
-    id, radius, body = msg.split(":")
-    body = body.split(",")
-    head = body[0]
-    head = head.split()
-    head = rl.Vector2(float(head[0]), float(head[1]))
-    body = body[1:]
-    for i in range(len(body)):
-        body[i] = body[i].split()
-        body[i] = rl.Vector2(float(body[i][0]), float(body[i][1]))
-    id = int(id)
-    radius = float(radius)
-    if id in snakes:
+    for snake_msg in snakes_msgs:
+        if not snake_msg:
+            continue
+        id, radius, body = snake_msg.split(":")
+        body = body.split(",")
+        if not body[0]:
+            continue
+        head = body[0]
+        head = head.split()
+        head = rl.Vector2(float(head[0]), float(head[1]))
+        body = body[1:]
+        for i in range(len(body)):
+            body[i] = body[i].split()
+            body[i] = rl.Vector2(float(body[i][0]), float(body[i][1]))
+        id = int(id)
+        radius = float(radius)
+        if id not in snakes:
+            snakes[id] = Snake(
+                pos=rl.vector2_zero(),
+                body_size=1,
+                radius=1,
+                speed=500,
+                color=rl.Color(randint(0, 255), randint(0, 255), randint(0, 255), 255)
+            )
         snakes[id].radius = radius
         snakes[id].head   = head
         snakes[id].body   = body
-    print(f"{msg=}")
 
 
 def game(client_id: int=0, client=None):
@@ -221,21 +229,31 @@ def game(client_id: int=0, client=None):
             food_spawner.spawn_food_on_snake_body(snake)
             snake.reset(WORLD_REC)
 
+        for cid, client_snake in snakes.items():
+            if client_id == cid:
+                continue
+            client_snake.draw()
+            print("Drawing other client snake ...")
+            print(f"{cllient_snake.head = }")
+            print(f"{cllient_snake.color = }")
+            print()
+
         rl.end_mode_2d()
         rl.draw_fps(10, 10)
         rl.end_drawing()
 
         if client:
-            msg_snake = MessageSnake
+            msg_snake = MessageSnake()
             msg_snake.radius = snake.radius
             msg_snake.body_coords = [snake.head] + snake.body
             msg = snake_to_msg(msg_snake)
+            # print(f"game.client.send: {msg}")
             client.send(msg)
 
             msg = client.receive()
-            print(f"snake.game: {msg}")
-            # if msg:
-            #     update_snakes(snakes, msg)
+            if msg:
+                # print(f"game.client.receive: {msg}")
+                update_snakes(snakes, msg)
 
     rl.close_window()
 
