@@ -90,7 +90,7 @@ def main():
                 btn_menu.draw()
                 btn_play.draw()
                 if server:
-                    rl.draw_text(f"Players: {len(server.clients)}", 100, 100, 64, rl.WHITE)
+                    rl.draw_text(f"Players: {len(server.clients)}", 1180, 100, 64, rl.WHITE)
                 if btn_menu.is_clicked():
                     game_state = GameState.MENU
                     print("menu")
@@ -117,8 +117,19 @@ def main():
                         game_state = GameState.WAIT
 
             case GameState.WAIT:
-                rl.draw_text("Waiting for host to start game", 400, 500, 65, rl.WHITE)
                 msg = client.receive()
+
+                if msg == "serveroff":
+                    text = "Server is down"
+                    text_height = 65
+                    text_width = rl.measure_text(text, text_height)
+                    rl.draw_text(text, win_width//2 - text_width//2, win_height//2, text_height, rl.RED)
+                else:
+                    text ="Waiting for host to start game"
+                    text_height = 65
+                    text_width = rl.measure_text(text, text_height)
+                    rl.draw_text(text, win_width//2 - text_width//2, win_height//2, text_height, rl.WHITE)
+
                 if msg == "start":
                     game_state = GameState.GAME
 

@@ -12,18 +12,22 @@ class MessageSnake:
         self.body_coords: list[rl.Vector2] = []
         self.radius = 0
 
-def msg_to_snake(msg: str) -> MessageSnake:
+def msg_to_snake(msg: str) -> MessageSnake|None:
+    print(f"msg_to_snake: {msg}")
     # "{radius}:{x} {y}, {x} {y}, {x} {y}, ..."
     msg_snake = MessageSnake()
 
-    radius, body = msg.split(":")
+    parts = msg.split(":")
+    if len(parts) != 2:
+        print("msg_to_snake: parts != 2")
+        return None
+    radius, body = parts[0], parts[1]
     msg_snake.radius = float(radius)
     body = body.split(",")
     for i in range(len(body)):
         xy = body[i].split()
         coord = rl.Vector2(float(xy[0]), float(xy[1]))
         msg_snake.body_coords.append(coord)
-
     return msg_snake
 
 def snake_to_msg(snake: MessageSnake) -> str:
@@ -111,9 +115,10 @@ class Server:
                 if index == -1:
                     continue
                 snake = msg_to_snake(buf[0:index])
-                self.snakes[sock] = snake
+                if snake:
+                    self.snakes[sock] = snake
+                    is_anything_new = True
                 self.buffers[sock] = buf[index + 1:-1]
-                is_anything_new = True
 
             if is_anything_new:
                 msg = ""
@@ -124,7 +129,7 @@ class Server:
                     msg += snake_to_msg(snake)
                     msg += "@"
 
-                print("Server.send_all: message with snake")
+                print(f"Server.send_all: {msg}")
                 self.send_all(msg)
 
 
